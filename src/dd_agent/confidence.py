@@ -1,0 +1,56 @@
+"""Confidence scoring: deterministic weighted-sum math, LLM sub-score assignment."""
+
+import json
+
+from pydantic import BaseModel, Field, ValidationError
+
+from dd_agent.schema import Evidence
+
+DEFAULT_WEIGHTS = {
+    "agreement": 0.4,
+    "specificity": 0.3,
+    "recency": 0.2,
+    "source_count_weight": 0.1,
+}
+
+
+class ScoringError(RuntimeError):
+    """Raised when the LLM produces output that cannot be parsed into SubScores."""
+
+
+class SubScores(BaseModel):
+    source_count_weight: float = Field(ge=0.0, le=1.0)
+    agreement: float = Field(ge=0.0, le=1.0)
+    recency: float = Field(ge=0.0, le=1.0)
+    specificity: float = Field(ge=0.0, le=1.0)
+
+
+def aggregate_confidence(sub_scores: list[SubScores], weights: dict[str, float]) -> float:
+    """Weighted sum of sub-scores, clipped to [0, 1]. Pure, no LLM."""
+    if abs(sum(weights.values()) - 1.0) > 1e-9:
+        raise ValueError(f"weights must sum to 1.0, got {sum(weights.values())}")
+    if not sub_scores:
+        return 0.0
+    total = 0.0
+    for s in sub_scores:
+        total += weights["agreement"] * s.agreement
+        total += weights["specificity"] * s.specificity
+        total += weights["recency"] * s.recency
+        total += weights["source_count_weight"] * s.source_count_weight
+    return round(max(0.0, min(1.0, total / len(sub_scores))), 10)
+
+
+def score_evidence_item(item: Evidence, llm) -> SubScores:
+    """Ask the LLM to assign sub-scores to one evidence item. Returns structured SubScores."""
+    prompt = (
+        "Score the following evidence item on four axes, each 0-1. "
+        'Respond with JSON: {"source_count_weight": float, "agreement": float, '
+        '"recency": float, "specificity": float}.\n'
+        f"source_type: {item.source_type}\nurl: {item.url}\nsnippet: {item.snippet}\n"
+    )
+    raw = llm.invoke(prompt)
+    try:
+        payload = json.loads(raw) if isinstance(raw, str) else raw
+        return SubScores.model_validate(payload)
+    except (json.JSONDecodeError, ValidationError, TypeError) as e:
+        raise ScoringError(f"could not parse LLM sub-scores: {e}") from e

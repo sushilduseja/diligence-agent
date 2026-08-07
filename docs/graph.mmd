@@ -1,0 +1,34 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	query_planner(query_planner)
+	docs_rag(docs_rag)
+	github_search(github_search)
+	community(community)
+	normalizer(normalizer)
+	confidence_scorer(confidence_scorer)
+	final_answer(final_answer)
+	needs_review(needs_review)
+	rejected(rejected)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> query_planner;
+	community --> normalizer;
+	confidence_scorer -.-> final_answer;
+	confidence_scorer -.-> needs_review;
+	docs_rag --> normalizer;
+	github_search --> normalizer;
+	needs_review -.-> final_answer;
+	needs_review -.-> rejected;
+	normalizer --> confidence_scorer;
+	query_planner --> community;
+	query_planner --> docs_rag;
+	query_planner --> github_search;
+	final_answer --> __end__;
+	rejected --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
