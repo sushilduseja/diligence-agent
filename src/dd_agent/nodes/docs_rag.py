@@ -1,8 +1,10 @@
 from dd_agent.schema import Evidence
 
+TOP_K = 3
+
 
 def docs_rag_node(query: str, index: list[dict]) -> list[Evidence]:
-    """Top-k chunk retrieval over a pre-built local chunk index. No live fetch."""
+    """Top-K chunk retrieval over a pre-built local chunk index. No live fetch."""
     if not query:
         return []
     terms = {t for t in query.lower().split() if t}
@@ -23,4 +25,4 @@ def docs_rag_node(query: str, index: list[dict]) -> list[Evidence]:
                 )
             )
     scored.sort(key=lambda e: e.relevance, reverse=True)
-    return scored
+    return scored[:TOP_K]

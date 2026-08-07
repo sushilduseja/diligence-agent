@@ -37,7 +37,12 @@ def run_cli(graph, question, *, out=print, err=print, prompt_input=input) -> int
                     for url in _evidence_urls(value):
                         out(f"  evidence: {url}")
                 elif key == "confidence_breakdown" and value is not None:
-                    out(f"  breakdown: {value}")
+                    parts = value.model_dump() if hasattr(value, "model_dump") else value
+                    if isinstance(parts, dict):
+                        rendered = "  ".join(f"{k}={v:.2f}" for k, v in parts.items())
+                    else:
+                        rendered = str(parts)
+                    out(f"  breakdown: {rendered}")
                 elif key == "confidence":
                     out(f"  confidence: {value:.2f}")
                 elif key == "answer" and value:

@@ -12,7 +12,7 @@ class RunResult:
     def __init__(self, graph, thread_id, question, final_state=None, interrupt_payload=None):
         self._graph = graph
         self._thread_id = thread_id
-        self._final_state: AgentState | dict | None = final_state
+        self._final_state: dict | None = final_state
         self._interrupt_payload = interrupt_payload
         self.question = question
 

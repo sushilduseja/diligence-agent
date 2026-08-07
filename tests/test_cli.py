@@ -102,18 +102,25 @@ def test_cli_no_interrupt_prints_recommendation_without_prompt():
 
 def test_cli_breakdown_rendered():
     captured = []
+    from dd_agent.schema import ConfidenceBreakdown
+
     graph = FakeGraph(
         [
             make_chunk(
                 "confidence_scorer",
-                {"confidence": 0.85, "confidence_breakdown": "breakdown-line"},
+                {
+                    "confidence": 0.85,
+                    "confidence_breakdown": ConfidenceBreakdown(
+                        source_count_weight=0.1, agreement=0.8, recency=0.9, specificity=0.7, aggregate=0.85
+                    ),
+                },
             )
         ]
     )
     run_cli(graph, "Question", out=captured.append, err=captured.append)
     joined = "\n".join(captured)
     assert "confidence: 0.85" in joined
-    assert "breakdown: breakdown-line" in joined
+    assert "breakdown: source_count_weight=0.10  agreement=0.80  recency=0.90  specificity=0.70  aggregate=0.85" in joined
 
 
 def test_main_requires_api_key(monkeypatch):

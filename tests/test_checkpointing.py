@@ -68,14 +68,25 @@ def test_restart_resume_completes(tmp_path):
 
 
 def test_resume_never_started_thread_raises_clear_error(tmp_path):
-    db = str(tmp_path / "checkpoints.db")
-    saver = make_sqlite_checkpointer(db)
-    graph = build_graph(
-        llm=FakeLLM(0.2), http_client=FakeClient(), docs_index=INDEX, checkpointer=saver
+    db_a = str(tmp_path / "a.db")
+    db_b = str(tmp_path / "b.db")
+    graph_a = build_graph(
+        llm=FakeLLM(0.2),
+        http_client=FakeClient(),
+        docs_index=INDEX,
+        checkpointer=make_sqlite_checkpointer(db_a),
     )
-    r = RunResult(graph, "t-never", "Question", interrupt_payload={"question": "Question"})
+    r = run(graph_a, "Question", thread_id="t-moved")
+    assert r.pending_approval is True
+    graph_b = build_graph(
+        llm=FakeLLM(0.2),
+        http_client=FakeClient(),
+        docs_index=INDEX,
+        checkpointer=make_sqlite_checkpointer(db_b),
+    )
+    r2 = RunResult(graph_b, "t-moved", "Question", interrupt_payload={"question": "Question"})
     with pytest.raises(RuntimeError, match="no checkpoint"):
-        r.resume(approved=True)
+        r2.resume(approved=True)
 
 
 def test_concurrent_threads_do_not_leak(tmp_path):

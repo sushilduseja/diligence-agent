@@ -21,12 +21,13 @@ PLAN = json.dumps(
 class FakeLLM:
     def __init__(self, score):
         self.score = score
+        self.plan = PLAN
         self.calls = []
 
     def invoke(self, prompt):
         self.calls.append(prompt)
         if prompt.startswith("Decompose"):
-            return PLAN
+            return self.plan
         if prompt.startswith("Score the following"):
             return json.dumps(
                 {
@@ -139,6 +140,23 @@ def test_retrieval_nodes_ran_in_parallel():
     assert len(client.started_at) == 2
     spread = max(t for _, t in client.started_at) - min(t for _, t in client.started_at)
     assert spread < 1.0
+
+
+def test_planner_empty_docs_key_graph_still_completes():
+    llm = FakeLLM(0.9)
+    llm.plan = json.dumps(
+        {"docs": "", "github": "stripe connect github issues", "community": "stripe connect stackoverflow"}
+    )
+    graph = build_graph(
+        llm=llm, http_client=FakeClient(), docs_index=INDEX, checkpointer=InMemorySaver()
+    )
+    final = graph.invoke(
+        {"question": "Should we integrate Stripe Connect?"},
+        {"configurable": {"thread_id": "t-missing-docs"}},
+    )
+    assert final["docs_evidence"] == []
+    assert len(final["github_evidence"]) == 1
+    assert final["answer"] != ""
 
 
 def test_zero_evidence_yields_zero_confidence():
