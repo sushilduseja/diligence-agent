@@ -21,5 +21,5 @@ automated suite.
 | ---- | -------- | ---------- | -------------- | --------------------------------- |
 |      |          |            |                |                                   |
 
-Note: no smoke run has been recorded yet — this environment has no
+Note: no smoke run has been recorded yet - this environment has no
 `GROQ_API_KEY`, so the end-to-end run against real APIs is still pending.

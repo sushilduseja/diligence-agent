@@ -1,4 +1,4 @@
-# dd-agent — AI Due Diligence Agent
+# dd-agent - AI Due Diligence Agent
 
 LangGraph prototype that answers integration questions (e.g. "Should we integrate
 Stripe Connect?") by retrieving evidence in parallel from three sources, scoring
@@ -61,11 +61,11 @@ pytest tests/test_graph.py  # single file
 
 ## Modules
 
-- `schema.py` — `Evidence`, `ConfidenceBreakdown`, `AgentState` (typed, validated)
-- `confidence.py` — rubric weighted-sum (`aggregate_confidence`) + LLM sub-score assignment
-- `nodes/` — `docs_rag`, `github_search`, `community` (parallel retrieval), `query_planner`, `normalizer`, `http_retry`
-- `graph.py` — LangGraph wiring: parallel fan-out, confidence gate, approval interrupt
-- `runner.py` — `run(graph, question)` / `RunResult.resume(approved)` wrapper
-- `checkpoint.py` / `cache.py` — SQLite persistence
-- `cli.py` — streaming terminal UX
-- `export.py` — mermaid diagram + markdown citation export
+- `schema.py` - `Evidence`, `ConfidenceBreakdown`, `AgentState` (typed, validated)
+- `confidence.py` - rubric weighted-sum (`aggregate_confidence`) + LLM sub-score assignment
+- `nodes/` - `docs_rag`, `github_search`, `community` (parallel retrieval), `query_planner`, `normalizer`, `http_retry`
+- `graph.py` - LangGraph wiring: parallel fan-out, confidence gate, approval interrupt
+- `runner.py` - `run(graph, question)` / `RunResult.resume(approved)` wrapper
+- `checkpoint.py` / `cache.py` - SQLite persistence
+- `cli.py` - streaming terminal UX
+- `export.py` - mermaid diagram + markdown citation export

@@ -1,4 +1,4 @@
-# AI Due Diligence Agent — TDD Build Plan
+# AI Due Diligence Agent - TDD Build Plan
 
 Target: LangGraph prototype, parallel retrieval, rubric-based confidence gate, human-in-the-loop interrupt, SQLite checkpointing. Under 400 lines excluding tests.
 
@@ -6,7 +6,7 @@ Rule for every phase: write the failing test first, implement the minimum code t
 
 ---
 
-## Phase 0 — Project Scaffold
+## Phase 0 - Project Scaffold
 
 **Goal:** Repo skeleton, dependency lock, CI-runnable test command.
 
@@ -24,7 +24,7 @@ Rule for every phase: write the failing test first, implement the minimum code t
 
 ---
 
-## Phase 1 — State and Evidence Schema
+## Phase 1 - State and Evidence Schema
 
 **Goal:** Typed state model with validation, no graph logic yet.
 
@@ -45,14 +45,14 @@ Rule for every phase: write the failing test first, implement the minimum code t
 
 ---
 
-## Phase 2 — Confidence Scorer (rubric, deterministic core)
+## Phase 2 - Confidence Scorer (rubric, deterministic core)
 
 **Goal:** Separate the deterministic weighted-sum math from the LLM sub-score assignment. Ship and test the math first, mock the LLM call second.
 
 **Tasks**
 - `src/dd_agent/confidence.py`
-- `score_evidence_item(item: Evidence, llm) -> SubScores` — calls LLM once, returns structured output: `source_count_weight`, `agreement`, `recency`, `specificity`, each `0-1`
-- `aggregate_confidence(sub_scores: list[SubScores], weights: dict[str,float]) -> float` — pure function, no LLM, weighted sum clipped to `[0,1]`
+- `score_evidence_item(item: Evidence, llm) -> SubScores` - calls LLM once, returns structured output: `source_count_weight`, `agreement`, `recency`, `specificity`, each `0-1`
+- `aggregate_confidence(sub_scores: list[SubScores], weights: dict[str,float]) -> float` - pure function, no LLM, weighted sum clipped to `[0,1]`
 - Default weights: agreement 0.4, specificity 0.3, recency 0.2, source_count 0.1
 
 **Tests** (`tests/test_confidence.py`)
@@ -73,7 +73,7 @@ Rule for every phase: write the failing test first, implement the minimum code t
 
 ---
 
-## Phase 3 — Retrieval Nodes (isolated, mocked transport)
+## Phase 3 - Retrieval Nodes (isolated, mocked transport)
 
 **Goal:** Each retrieval node is a pure function of `(query, http_client) -> list[Evidence]`. No live network calls in tests.
 
@@ -100,7 +100,7 @@ Rule for every phase: write the failing test first, implement the minimum code t
 - Mocked timeout → node returns empty list, does not raise
 - Malformed JSON body → node returns empty list, does not raise
 
-### 3c. Community node (optional — build only if 3a/3b land with time to spare)
+### 3c. Community node (optional - build only if 3a/3b land with time to spare)
 **Tasks**
 - Same shape as GitHub node, Stack Exchange API, capped at N=5 results
 
@@ -113,7 +113,7 @@ Rule for every phase: write the failing test first, implement the minimum code t
 
 ---
 
-## Phase 4 — Query Planner
+## Phase 4 - Query Planner
 
 **Goal:** Decompose one user question into per-source sub-queries.
 
@@ -127,11 +127,11 @@ Rule for every phase: write the failing test first, implement the minimum code t
 - Mocked LLM returns empty string for a query → that key is dropped, remaining keys still returned (downstream nodes must handle a missing sub-query key)
 
 **Exit criteria**
-- Downstream nodes (Phase 3) already handle an absent/empty query without crashing — add a regression test confirming this integration point
+- Downstream nodes (Phase 3) already handle an absent/empty query without crashing - add a regression test confirming this integration point
 
 ---
 
-## Phase 5 — Evidence Normalizer
+## Phase 5 - Evidence Normalizer
 
 **Goal:** Merge parallel node outputs into one deduplicated list.
 
@@ -147,7 +147,7 @@ Rule for every phase: write the failing test first, implement the minimum code t
 
 ---
 
-## Phase 6 — Graph Wiring (no interrupt yet)
+## Phase 6 - Graph Wiring (no interrupt yet)
 
 **Goal:** Assemble Phases 1-5 into a LangGraph `StateGraph` with parallel fan-out and conditional routing, confidence gate wired to a stub "final answer" node on both branches.
 
@@ -169,7 +169,7 @@ Rule for every phase: write the failing test first, implement the minimum code t
 
 ---
 
-## Phase 7 — Human-in-the-Loop Interrupt
+## Phase 7 - Human-in-the-Loop Interrupt
 
 **Goal:** Replace the `needs_review` stub with a real `interrupt()` call and `Command(resume=...)` flow.
 
@@ -185,7 +185,7 @@ Rule for every phase: write the failing test first, implement the minimum code t
 
 ---
 
-## Phase 8 — Checkpointing
+## Phase 8 - Checkpointing
 
 **Goal:** Persist state across process restarts using `SqliteSaver`.
 
@@ -200,7 +200,7 @@ Rule for every phase: write the failing test first, implement the minimum code t
 
 ---
 
-## Phase 9 — CLI and Streaming Output
+## Phase 9 - CLI and Streaming Output
 
 **Goal:** Terminal UX matching the demo transcript: live evidence arrival, approval prompt, final recommendation.
 
@@ -218,7 +218,7 @@ Rule for every phase: write the failing test first, implement the minimum code t
 
 ---
 
-## Phase 10 — Stretch Goals (only after Phase 9 is fully green)
+## Phase 10 - Stretch Goals (only after Phase 9 is fully green)
 
 Pick in this order, stop when time runs out:
 

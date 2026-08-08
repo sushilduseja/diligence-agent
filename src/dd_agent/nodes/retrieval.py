@@ -28,7 +28,7 @@ SOURCES: dict[SourceType, dict] = {
         "url": "https://api.github.com/search/issues",
         "params": lambda q: {"q": q},
         "url_field": "html_url",
-        "snippet": lambda it: f"{it.get('title', '')} — {it.get('body', '')}"[:500],
+        "snippet": lambda it: f"{it.get('title', '')} - {it.get('body', '')}"[:500],
         "max_results": None,
     },
     "community": {
