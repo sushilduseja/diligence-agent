@@ -66,14 +66,18 @@ def build_default_graph(index_path=None):
 
     import httpx
 
+    from dotenv import load_dotenv
+
     from dd_agent.cache import QueryCache
     from dd_agent.checkpoint import make_sqlite_checkpointer
     from dd_agent.graph import build_graph
-    from dd_agent.llm import AnthropicLLM
+    from dd_agent.llm import GroqLLM
 
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    load_dotenv()
+
+    api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
-        raise SystemExit("ANTHROPIC_API_KEY is not set")
+        raise SystemExit("GROQ_API_KEY is not set")
     if index_path is None:
         index_path = Path(__file__).resolve().parent.parent.parent / "data" / "docs_index.json"
     index_path = Path(index_path)
@@ -83,7 +87,7 @@ def build_default_graph(index_path=None):
         headers["Authorization"] = f"Bearer {os.environ['GITHUB_TOKEN']}"
     client = httpx.Client(timeout=30, headers=headers, follow_redirects=True)
     checkpointer = make_sqlite_checkpointer("checkpoints.db")
-    return build_graph(AnthropicLLM(api_key), client, index, checkpointer, QueryCache.open("query_cache.db"))
+    return build_graph(GroqLLM(api_key), client, index, checkpointer, QueryCache.open("query_cache.db"))
 
 
 def main(argv=None) -> int:

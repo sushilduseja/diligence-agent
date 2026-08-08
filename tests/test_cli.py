@@ -124,8 +124,9 @@ def test_cli_breakdown_rendered():
 
 
 def test_main_requires_api_key(monkeypatch):
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    with pytest.raises(SystemExit, match="ANTHROPIC_API_KEY"):
+    monkeypatch.setattr("dotenv.load_dotenv", lambda *a, **k: None)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    with pytest.raises(SystemExit, match="GROQ_API_KEY"):
         cli.main(["Should we integrate Stripe Connect?"])
 
 
@@ -134,7 +135,7 @@ def test_build_default_graph_wiring(tmp_path, monkeypatch):
 
     index_file = tmp_path / "docs_index.json"
     index_file.write_text(json.dumps([{"url": "u", "chunk": "c"}]), encoding="utf-8")
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    monkeypatch.setenv("GROQ_API_KEY", "sk-test")
     monkeypatch.setenv("GITHUB_TOKEN", "ghp-test")
     calls = {}
 
@@ -152,7 +153,7 @@ def test_build_default_graph_wiring(tmp_path, monkeypatch):
         calls["query_cache"] = query_cache
         return ("graph", llm, checkpointer)
 
-    monkeypatch.setattr(llm, "AnthropicLLM", FakeLLM)
+    monkeypatch.setattr(llm, "GroqLLM", FakeLLM)
     monkeypatch.setattr(checkpoint, "make_sqlite_checkpointer", FakeCheckpointer)
     monkeypatch.setattr(graph, "build_graph", fake_build)
     result = cli.build_default_graph(index_path=index_file)
@@ -167,7 +168,7 @@ def test_build_default_graph_wiring(tmp_path, monkeypatch):
 def test_build_default_graph_missing_index(tmp_path, monkeypatch):
     from dd_agent import graph
 
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    monkeypatch.setenv("GROQ_API_KEY", "sk-test")
     calls = {}
 
     def fake_build(llm, client, index, checkpointer, query_cache):

@@ -39,11 +39,11 @@ def test_invoke_extracts_text_and_strips_fence(monkeypatch):
     from dd_agent import llm
 
     fake = FakeHTTPX(
-        [FakeResponse({"content": [{"type": "text", "text": '```json\n{"x": 1}\n```'}]})]
+        [FakeResponse({"choices": [{"message": {"content": '```json\n{"x": 1}\n```'}}]})]
     )
     monkeypatch.setattr(llm.httpx, "Client", lambda **kw: fake)
-    model = llm.AnthropicLLM("sk-test", model="claude-test")
+    model = llm.GroqLLM("sk-test", model="llama-test")
     result = model.invoke("prompt")
     assert result == '{"x": 1}'
-    assert fake.last_kwargs["json"]["model"] == "claude-test"
-    assert fake.last_kwargs["headers"]["x-api-key"] == "sk-test"
+    assert fake.last_kwargs["json"]["model"] == "llama-test"
+    assert fake.last_kwargs["headers"]["Authorization"] == "Bearer sk-test"

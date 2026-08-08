@@ -12,6 +12,7 @@ dependencies = [
     "langchain-core",
     "httpx",
     "pydantic",
+    "python-dotenv",
 ]
 
 [project.optional-dependencies]

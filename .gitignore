@@ -9,6 +9,7 @@ venv/
 # Secrets
 .env
 .env.*
+!.env.example
 
 # Data / runtime artifacts
 checkpoints.db

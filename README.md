@@ -34,8 +34,11 @@ pip install -e ".[dev]"
 
 | Variable           | Required | Purpose                                        |
 | ------------------ | -------- | ---------------------------------------------- |
-| `ANTHROPIC_API_KEY`| Yes      | LLM calls (planning, sub-scores, answers)      |
+| `GROQ_API_KEY`     | Yes      | LLM calls (planning, sub-scores, answers)      |
 | `GITHUB_TOKEN`     | No       | GitHub search auth (avoids rate limiting)      |
+
+Copy `.env.example` to `.env` and fill in your keys; the CLI loads it
+automatically.
 
 ## How to run
 
