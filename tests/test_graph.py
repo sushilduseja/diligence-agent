@@ -179,3 +179,27 @@ def test_zero_evidence_yields_zero_confidence():
         expect_interrupt=True,
     )
     assert "final_answer" not in nodes
+
+
+def test_malformed_sub_scores_do_not_abort_run():
+    class MalformedScoreLLM(FakeLLM):
+        def invoke(self, prompt):
+            if prompt.startswith("Decompose"):
+                return self.plan
+            if prompt.startswith("Score the following"):
+                return "not json {{{"
+            raise AssertionError(f"unexpected prompt: {prompt[:60]}")
+
+    graph = build_graph(
+        llm=MalformedScoreLLM(0.9),
+        http_client=FakeClient(),
+        docs_index=INDEX,
+        checkpointer=InMemorySaver(),
+    )
+    nodes = collect_nodes(
+        graph,
+        "Should we integrate Stripe Connect?",
+        thread_id="t-malformed",
+        expect_interrupt=True,
+    )
+    assert "confidence_scorer" in nodes

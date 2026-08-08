@@ -23,7 +23,7 @@ class RunResult:
     @property
     def confidence(self) -> float | None:
         if self._interrupt_payload is not None:
-            return self._interrupt_payload.get("confidence")
+            return self._interrupt_payload.confidence
         if self._final_state is None:
             return None
         return self._final_state.get("confidence", 0.0)
@@ -37,7 +37,7 @@ class RunResult:
     @property
     def evidence_summary(self) -> list:
         if self._interrupt_payload is not None:
-            return self._interrupt_payload.get("evidence_summary", [])
+            return self._interrupt_payload.evidence_summary
         return []
 
     def resume(self, approved: bool) -> "RunResult":

@@ -22,6 +22,14 @@ class ConfidenceBreakdown(BaseModel):
     aggregate: float = Field(ge=0.0, le=1.0)
 
 
+class ReviewRequest(BaseModel):
+    """Payload sent to the human reviewer at the approval interrupt."""
+
+    question: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    evidence_summary: list[Evidence] = Field(default_factory=list)
+
+
 class AgentState(BaseModel):
     question: str
     sub_queries: dict[str, str] = Field(default_factory=dict)

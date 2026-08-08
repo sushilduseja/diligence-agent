@@ -54,7 +54,7 @@ def test_capped_at_five():
 
 def test_403_returns_empty(mocker):
     client = FakeClient([FakeResponse(403, "denied")])
-    mocker.patch("dd_agent.nodes.community.logger.warning")
+    mocker.patch("dd_agent.nodes.retrieval.logger.warning")
     assert community_node("stripe connect", client) == []
 
 
@@ -66,11 +66,11 @@ def test_timeout_returns_empty(mocker):
 
     client = FakeClient([])
     client.get = _raise_get
-    mocker.patch("dd_agent.nodes.community.logger.warning")
+    mocker.patch("dd_agent.nodes.retrieval.logger.warning")
     assert community_node("stripe connect", client) == []
 
 
 def test_malformed_json_returns_empty(mocker):
     client = FakeClient([FakeResponse(200, "not json")])
-    mocker.patch("dd_agent.nodes.community.logger.warning")
+    mocker.patch("dd_agent.nodes.retrieval.logger.warning")
     assert community_node("stripe connect", client) == []

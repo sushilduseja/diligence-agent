@@ -7,6 +7,7 @@ from dd_agent.confidence import (
     ScoringError,
     SubScores,
     aggregate_confidence,
+    score,
     score_evidence_item,
 )
 from dd_agent.schema import Evidence
@@ -84,3 +85,54 @@ def test_score_evidence_item_calls_llm_exactly_once():
     score_evidence_item(item, llm)
     score_evidence_item(item, llm)
     assert llm.calls == 2
+
+
+# --- score: batch interface, drop-and-continue on malformed items ---
+
+
+def test_score_batch_aggregates_all_valid():
+    raw = json.dumps(
+        {"source_count_weight": 0.2, "agreement": 0.8, "recency": 0.6, "specificity": 0.9}
+    )
+    llm = FakeLLM(raw=raw)
+    items = [Evidence(source_type="docs", url="https://x/1", snippet="s", relevance=0.7)] * 2
+    breakdown = score(items, llm)
+    assert breakdown.aggregate == pytest.approx(0.1 * 0.2 + 0.4 * 0.8 + 0.2 * 0.6 + 0.3 * 0.9)
+    assert breakdown.agreement == pytest.approx(0.8)
+
+
+def test_score_drops_malformed_item_and_continues():
+    good = json.dumps(
+        {"source_count_weight": 1.0, "agreement": 1.0, "recency": 1.0, "specificity": 1.0}
+    )
+    items = [
+        Evidence(source_type="docs", url="https://x/1", snippet="s", relevance=0.7),
+        Evidence(source_type="docs", url="https://x/2", snippet="s", relevance=0.7),
+    ]
+
+    class FlakyLLM:
+        def __init__(self):
+            self.calls = 0
+
+        def invoke(self, *args, **kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                return "not json {{{"
+            return good
+
+    breakdown = score(items, FlakyLLM())
+    assert breakdown.aggregate == 1.0
+
+
+def test_score_all_malformed_yields_zero():
+    llm = FakeLLM(raw="not json {{{")
+    items = [Evidence(source_type="docs", url="https://x/1", snippet="s", relevance=0.7)]
+    breakdown = score(items, llm)
+    assert breakdown.aggregate == 0.0
+    assert breakdown.agreement == 0.0
+
+
+def test_score_empty_items_yields_zero_breakdown():
+    breakdown = score([], FakeLLM())
+    assert breakdown.aggregate == 0.0
+    assert breakdown.specificity == 0.0

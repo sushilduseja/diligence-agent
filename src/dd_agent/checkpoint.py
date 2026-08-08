@@ -12,6 +12,7 @@ def make_sqlite_checkpointer(path: str) -> SqliteSaver:
     saver.allowed_msgpack_modules = [
         ("dd_agent.schema", "Evidence"),
         ("dd_agent.schema", "ConfidenceBreakdown"),
+        ("dd_agent.schema", "ReviewRequest"),
     ]
     saver.setup()
     return saver

@@ -47,7 +47,7 @@ def test_200_with_two_issues():
 
 def test_403_rate_limit_returns_empty(mocker):
     client = FakeClient([FakeResponse(403, "rate limited")])
-    warn = mocker.patch("dd_agent.nodes.github_search.logger.warning")
+    warn = mocker.patch("dd_agent.nodes.retrieval.logger.warning")
     result = github_search_node("stripe connect", client)
     assert result == []
     warn.assert_called_once()
@@ -61,14 +61,14 @@ def test_timeout_returns_empty(mocker):
 
     client = FakeClient([])
     client.get = _raise_get
-    mocker.patch("dd_agent.nodes.github_search.logger.warning")
+    mocker.patch("dd_agent.nodes.retrieval.logger.warning")
     result = github_search_node("stripe connect", client)
     assert result == []
 
 
 def test_malformed_json_returns_empty(mocker):
     client = FakeClient([FakeResponse(200, "not json {{{")])
-    mocker.patch("dd_agent.nodes.github_search.logger.warning")
+    mocker.patch("dd_agent.nodes.retrieval.logger.warning")
     result = github_search_node("stripe connect", client)
     assert result == []
 

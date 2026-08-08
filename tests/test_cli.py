@@ -131,7 +131,7 @@ def test_main_requires_api_key(monkeypatch):
 
 
 def test_build_default_graph_wiring(tmp_path, monkeypatch):
-    from dd_agent import checkpoint, graph, llm
+    from dd_agent import compose
 
     index_file = tmp_path / "docs_index.json"
     index_file.write_text(json.dumps([{"url": "u", "chunk": "c"}]), encoding="utf-8")
@@ -153,20 +153,20 @@ def test_build_default_graph_wiring(tmp_path, monkeypatch):
         calls["query_cache"] = query_cache
         return ("graph", llm, checkpointer)
 
-    monkeypatch.setattr(llm, "GroqLLM", FakeLLM)
-    monkeypatch.setattr(checkpoint, "make_sqlite_checkpointer", FakeCheckpointer)
-    monkeypatch.setattr(graph, "build_graph", fake_build)
-    result = cli.build_default_graph(index_path=index_file)
+    monkeypatch.setattr(compose, "GroqLLM", FakeLLM)
+    monkeypatch.setattr(compose, "make_sqlite_checkpointer", FakeCheckpointer)
+    monkeypatch.setattr(compose, "build_graph", fake_build)
+    result = compose.build_default_graph(index_path=index_file)
     graph_, llm_, checkpointer = result
     assert calls["llm_key"] == "sk-test"
     assert calls["index"] == [{"url": "u", "chunk": "c"}]
     assert calls["client_headers"]["Authorization"] == "Bearer ghp-test"
-    assert calls["db_path"] == "checkpoints.db"
+    assert calls["db_path"] == str(compose.REPO_ROOT / "checkpoints.db")
     assert calls["query_cache"] is not None
 
 
 def test_build_default_graph_missing_index(tmp_path, monkeypatch):
-    from dd_agent import graph
+    from dd_agent import compose
 
     monkeypatch.setenv("GROQ_API_KEY", "sk-test")
     calls = {}
@@ -175,6 +175,6 @@ def test_build_default_graph_missing_index(tmp_path, monkeypatch):
         calls["index"] = index
         return "ok"
 
-    monkeypatch.setattr(graph, "build_graph", fake_build)
-    result = cli.build_default_graph(index_path=tmp_path / "missing.json")
+    monkeypatch.setattr(compose, "build_graph", fake_build)
+    result = compose.build_default_graph(index_path=tmp_path / "missing.json")
     assert calls["index"] == []

@@ -1,6 +1,7 @@
 import json
 
 from dd_agent.cache import QueryCache
+from dd_agent.nodes.community import community_node
 from dd_agent.nodes.github_search import github_search_node
 
 
@@ -47,3 +48,11 @@ def test_cache_persists_across_instances(tmp_path):
     assert client.calls == 1
     github_search_node("stripe connect", client, cache=QueryCache.open(path))
     assert client.calls == 1
+
+
+def test_same_query_different_source_does_not_share_cache(tmp_path):
+    cache = QueryCache.open(str(tmp_path / "cache.db"))
+    client = CountingClient()
+    github_search_node("stripe connect", client, cache=cache)
+    community_node("stripe connect", client, cache=cache)
+    assert client.calls == 2

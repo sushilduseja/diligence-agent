@@ -1,10 +1,13 @@
 """Confidence scoring: deterministic weighted-sum math, LLM sub-score assignment."""
 
 import json
+import logging
 
 from pydantic import BaseModel, Field, ValidationError
 
-from dd_agent.schema import Evidence
+from dd_agent.schema import ConfidenceBreakdown, Evidence
+
+logger = logging.getLogger("dd_agent")
 
 DEFAULT_WEIGHTS = {
     "agreement": 0.4,
@@ -54,3 +57,28 @@ def score_evidence_item(item: Evidence, llm) -> SubScores:
         return SubScores.model_validate(payload)
     except (json.JSONDecodeError, ValidationError, TypeError) as e:
         raise ScoringError(f"could not parse LLM sub-scores: {e}") from e
+
+
+def score(items: list[Evidence], llm, weights: dict[str, float] = None) -> ConfidenceBreakdown:
+    """Score a batch of evidence into a ConfidenceBreakdown. One interface for the graph gate."""
+    if weights is None:
+        weights = DEFAULT_WEIGHTS
+    subs = []
+    for item in items:
+        try:
+            subs.append(score_evidence_item(item, llm))
+        except ScoringError as e:
+            logger.warning("dropping unparseable evidence item %s: %s", item.url, e)
+    if not subs:
+        return ConfidenceBreakdown(
+            source_count_weight=0, agreement=0, recency=0, specificity=0, aggregate=0
+        )
+    aggregate = aggregate_confidence(subs, weights)
+    n = len(subs)
+    return ConfidenceBreakdown(
+        source_count_weight=sum(s.source_count_weight for s in subs) / n,
+        agreement=sum(s.agreement for s in subs) / n,
+        recency=sum(s.recency for s in subs) / n,
+        specificity=sum(s.specificity for s in subs) / n,
+        aggregate=aggregate,
+    )

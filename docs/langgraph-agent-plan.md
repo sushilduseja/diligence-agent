@@ -13,7 +13,7 @@ Rule for every phase: write the failing test first, implement the minimum code t
 **Tasks**
 - `pyproject.toml` with `langgraph`, `langchain-core`, `pytest`, `pytest-mock`, `httpx`, `pydantic`
 - `src/dd_agent/` package, `tests/` mirror structure
-- `.env.example` with `GITHUB_TOKEN`, `ANTHROPIC_API_KEY`
+- `.env.example` with `GITHUB_TOKEN`, `GROQ_API_KEY`
 - `pytest.ini` with `testpaths = tests`
 
 **Tests**

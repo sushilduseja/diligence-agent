@@ -3,13 +3,13 @@
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 
-from dd_agent.confidence import DEFAULT_WEIGHTS, aggregate_confidence, score_evidence_item
+from dd_agent.confidence import score
 from dd_agent.nodes.community import community_node
 from dd_agent.nodes.docs_rag import docs_rag_node
 from dd_agent.nodes.github_search import github_search_node
 from dd_agent.nodes.normalizer import normalize
 from dd_agent.nodes.query_planner import plan_queries
-from dd_agent.schema import AgentState, ConfidenceBreakdown
+from dd_agent.schema import AgentState, ReviewRequest
 
 CONFIDENCE_THRESHOLD = 0.8
 
@@ -51,23 +51,8 @@ def build_graph(llm, http_client, docs_index, checkpointer=None, query_cache=Non
         }
 
     def confidence_scorer(state):
-        items = state.evidence
-        if not items:
-            breakdown = ConfidenceBreakdown(
-                source_count_weight=0, agreement=0, recency=0, specificity=0, aggregate=0
-            )
-            return {"confidence": 0.0, "confidence_breakdown": breakdown}
-        subs = [score_evidence_item(item, llm) for item in items]
-        aggregate = aggregate_confidence(subs, DEFAULT_WEIGHTS)
-        n = len(subs)
-        breakdown = ConfidenceBreakdown(
-            source_count_weight=sum(s.source_count_weight for s in subs) / n,
-            agreement=sum(s.agreement for s in subs) / n,
-            recency=sum(s.recency for s in subs) / n,
-            specificity=sum(s.specificity for s in subs) / n,
-            aggregate=aggregate,
-        )
-        return {"confidence": aggregate, "confidence_breakdown": breakdown}
+        breakdown = score(state.evidence, llm)
+        return {"confidence": breakdown.aggregate, "confidence_breakdown": breakdown}
 
     def final_answer(state):
         urls = ", ".join(e.url for e in state.evidence)
@@ -80,11 +65,11 @@ def build_graph(llm, http_client, docs_index, checkpointer=None, query_cache=Non
 
     def needs_review(state):
         decision = interrupt(
-            {
-                "question": state.question,
-                "confidence": state.confidence,
-                "evidence_summary": [e.model_dump() for e in state.evidence][:5],
-            }
+            ReviewRequest(
+                question=state.question,
+                confidence=state.confidence,
+                evidence_summary=state.evidence,
+            )
         )
         return {"approved": decision}
 

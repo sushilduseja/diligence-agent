@@ -5,7 +5,7 @@ automated suite.
 
 ## How to run
 
-1. Set credentials: `ANTHROPIC_API_KEY` (required), `GITHUB_TOKEN` (optional, raises rate limits).
+1. Set credentials: `GROQ_API_KEY` (required), `GITHUB_TOKEN` (optional, raises rate limits).
 2. Build the docs index: `python -m scripts.build_docs_index`
 3. Run: `python -m dd_agent.cli "Should we integrate Stripe Connect?"`
 
@@ -22,4 +22,4 @@ automated suite.
 |      |          |            |                |                                   |
 
 Note: no smoke run has been recorded yet — this environment has no
-`ANTHROPIC_API_KEY`, so the end-to-end run against real APIs is still pending.
+`GROQ_API_KEY`, so the end-to-end run against real APIs is still pending.

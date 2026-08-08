@@ -1,4 +1,4 @@
-"""SQLite-backed query cache, keyed by hash of the sub-query."""
+"""SQLite-backed query cache, keyed by hash of source + sub-query."""
 
 import hashlib
 import json
@@ -7,8 +7,8 @@ import sqlite3
 from dd_agent.schema import Evidence
 
 
-def _key(query: str) -> str:
-    return hashlib.sha256(query.encode("utf-8")).hexdigest()
+def _key(source: str, query: str) -> str:
+    return hashlib.sha256(f"{source}\0{query}".encode("utf-8")).hexdigest()
 
 
 class QueryCache:
@@ -25,18 +25,18 @@ class QueryCache:
     def open(cls, path: str) -> "QueryCache":
         return cls(sqlite3.connect(path))
 
-    def get(self, query: str) -> list[Evidence] | None:
+    def get(self, source: str, query: str) -> list[Evidence] | None:
         row = self._conn.execute(
-            "SELECT payload FROM query_cache WHERE key = ?", (_key(query),)
+            "SELECT payload FROM query_cache WHERE key = ?", (_key(source, query),)
         ).fetchone()
         if row is None:
             return None
         return [Evidence.model_validate(item) for item in json.loads(row[0])]
 
-    def set(self, query: str, evidence: list[Evidence]) -> None:
+    def set(self, source: str, query: str, evidence: list[Evidence]) -> None:
         payload = json.dumps([e.model_dump() for e in evidence])
         self._conn.execute(
             "INSERT OR REPLACE INTO query_cache (key, payload) VALUES (?, ?)",
-            (_key(query), payload),
+            (_key(source, query), payload),
         )
         self._conn.commit()
