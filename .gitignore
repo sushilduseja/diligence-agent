@@ -1,8 +1,25 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
 .pytest_cache/
 *.egg-info/
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+
+# Data / runtime artifacts
 checkpoints.db
 query_cache.db
 data/docs_index.json
+
+# Coverage
 .coverage
+htmlcov/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
