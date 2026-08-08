@@ -8,18 +8,31 @@ Built TDD per [docs/langgraph-agent-plan.md](docs/langgraph-agent-plan.md).
 
 ## Architecture
 
-```
-                 ┌─ docs_rag ─┐
-question ──► query_planner ──┼─ github_search ──► normalizer ──► confidence_scorer
-                 └─ community ┘                                          │
-                                   confidence ≥ 0.8 ──► final_answer ──► END
-                                   confidence <  0.8 ──► needs_review (interrupt)
-                                                            │ resume
-                                          approved ──► final_answer ──► END
-                                          rejected ──► rejected (explicit "no recommendation")
+```mermaid
+flowchart TD
+    START([question]) --> planner[query_planner]
+
+    planner --> docs[docs_rag]
+    planner --> github[github_search]
+    planner --> community[community]
+
+    docs --> normalizer[normalizer]
+    github --> normalizer
+    community --> normalizer
+
+    normalizer --> scorer[confidence_scorer]
+
+    scorer -->|confidence >= 0.8| final[final_answer]
+    scorer -->|confidence < 0.8| review[needs_review]
+
+    review -->|approved| final
+    review -->|rejected| rejected[rejected]
+
+    final --> DONE([end])
+    rejected --> DONE
 ```
 
-See [docs/graph.mmd](docs/graph.mmd) for the full diagram. State is a typed
+See [docs/graph.mmd](docs/graph.mmd) for the source. State is a typed
 pydantic model (`dd_agent/schema.py`); checkpoints persist to SQLite so runs
 survive process restarts.
 
