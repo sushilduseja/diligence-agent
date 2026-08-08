@@ -61,11 +61,13 @@ pytest tests/test_graph.py  # single file
 
 ## Modules
 
-- `schema.py` - `Evidence`, `ConfidenceBreakdown`, `AgentState` (typed, validated)
-- `confidence.py` - rubric weighted-sum (`aggregate_confidence`) + LLM sub-score assignment
-- `nodes/` - `docs_rag`, `github_search`, `community` (parallel retrieval), `query_planner`, `normalizer`, `http_retry`
+- `schema.py` - `Evidence`, `ConfidenceBreakdown`, `ReviewRequest`, `AgentState` (typed, validated)
+- `confidence.py` - deep scoring module: `score(items, llm) -> ConfidenceBreakdown` (drops unparseable items)
+- `nodes/` - `docs_rag` (local index), `github_search` / `community` (thin wrappers over shared `retrieval.py`), `query_planner`, `normalizer`, `http_retry`
 - `graph.py` - LangGraph wiring: parallel fan-out, confidence gate, approval interrupt
 - `runner.py` - `run(graph, question)` / `RunResult.resume(approved)` wrapper
-- `checkpoint.py` / `cache.py` - SQLite persistence
-- `cli.py` - streaming terminal UX
+- `compose.py` - composition root: env, paths, adapters
+- `checkpoint.py` / `cache.py` - SQLite persistence (source-scoped query cache)
+- `llm.py` - `GroqLLM` chat completions wrapper
+- `cli.py` - streaming terminal renderer
 - `export.py` - mermaid diagram + markdown citation export
