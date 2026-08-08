@@ -56,7 +56,34 @@ def score_evidence_item(item: Evidence, llm) -> SubScores:
         payload = json.loads(raw) if isinstance(raw, str) else raw
         return SubScores.model_validate(payload)
     except (json.JSONDecodeError, ValidationError, TypeError) as e:
+        extracted = _extract_json_object(raw)
+        if extracted is not None:
+            try:
+                return SubScores.model_validate(extracted)
+            except (ValidationError, TypeError):
+                pass
         raise ScoringError(f"could not parse LLM sub-scores: {e}") from e
+
+
+def _extract_json_object(raw) -> dict | None:
+    """Models often append prose after the JSON. Pull out the first balanced JSON object."""
+    if not isinstance(raw, str):
+        return None
+    start = raw.find("{")
+    if start == -1:
+        return None
+    depth = 0
+    for i in range(start, len(raw)):
+        if raw[i] == "{":
+            depth += 1
+        elif raw[i] == "}":
+            depth -= 1
+            if depth == 0:
+                try:
+                    return json.loads(raw[start : i + 1])
+                except json.JSONDecodeError:
+                    return None
+    return None
 
 
 def score(items: list[Evidence], llm, weights: dict[str, float] = None) -> ConfidenceBreakdown:

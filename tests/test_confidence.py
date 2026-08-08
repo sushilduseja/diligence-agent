@@ -76,6 +76,17 @@ def test_score_evidence_item_malformed_json_raises_scoring_error():
         score_evidence_item(item, llm)
 
 
+def test_score_evidence_item_parses_json_with_trailing_prose():
+    raw = (
+        '{"source_count_weight": 0.2, "agreement": 0.8, "recency": 0.6, "specificity": 0.9}\n\n'
+        "Note: the source is authoritative and recent."
+    )
+    llm = FakeLLM(raw=raw)
+    item = Evidence(source_type="docs", url="https://x", snippet="s", relevance=0.7)
+    subs = score_evidence_item(item, llm)
+    assert subs == SubScores(source_count_weight=0.2, agreement=0.8, recency=0.6, specificity=0.9)
+
+
 def test_score_evidence_item_calls_llm_exactly_once():
     raw = json.dumps(
         {"source_count_weight": 0.1, "agreement": 0.8, "recency": 0.7, "specificity": 0.6}
