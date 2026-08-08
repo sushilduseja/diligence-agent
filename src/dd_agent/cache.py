@@ -23,7 +23,7 @@ class QueryCache:
 
     @classmethod
     def open(cls, path: str) -> "QueryCache":
-        return cls(sqlite3.connect(path))
+        return cls(sqlite3.connect(path, check_same_thread=False))
 
     def get(self, source: str, query: str) -> list[Evidence] | None:
         row = self._conn.execute(

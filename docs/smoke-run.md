@@ -6,7 +6,7 @@ automated suite.
 ## How to run
 
 1. Set credentials: `GROQ_API_KEY` (required), `GITHUB_TOKEN` (optional, raises rate limits).
-2. Build the docs index: `python -m scripts.build_docs_index`
+2. Build the docs index: `python scripts/build_docs_index.py`
 3. Run: `python -m dd_agent.cli "Should we integrate Stripe Connect?"`
 
 ## Procedure

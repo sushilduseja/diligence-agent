@@ -56,7 +56,7 @@ automatically.
 ## How to run
 
 ```bash
-python -m scripts.build_docs_index        # build local docs chunk index (once)
+python scripts/build_docs_index.py    # build local docs chunk index (once)
 python -m dd_agent.cli "Should we integrate Stripe Connect?"
 ```
 
